@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+    stages {
+        stage('Install dependencies') {
+            steps {
+                script {
+                    sh('mvn clean install -DskipTests') // Installe les dépendances et compile le projet sans exécuter les tests
+                }
+            }
+        }
+        stage('Unit Test') {
+            steps {
+                script {
+                    sh('mvn test') // Exécute les tests unitaires
+                }
+            }
+        }
+        stage('Build application') {
+            steps {
+                script {
+                    sh('mvn package -DskipTests') // Construit l'application (génère le fichier JAR/WAR)
+                }
+            }
+        }
+    }
+}
