@@ -4,21 +4,21 @@ pipeline {
     stages {
         stage('Install dependencies') {
             steps {
-                dir('.') {  // Exécute les commandes dans le répertoire courant (kaddem)
+                dir('kaddem') {  // Exécute les commandes dans le répertoire kaddem
                     sh 'mvn clean install -DskipTests'
                 }
             }
         }
         stage('Unit Test') {
             steps {
-                dir('.') {  // Exécute les commandes dans le répertoire courant (kaddem)
+                dir('kaddem') {  // Exécute les commandes dans le répertoire kaddem
                     sh 'mvn test'
                 }
             }
         }
         stage('Build application') {
             steps {
-                dir('.') {  // Exécute les commandes dans le répertoire courant (kaddem)
+                dir('kaddem') {  // Exécute les commandes dans le répertoire kaddem
                     sh 'mvn package'
                 }
             }
