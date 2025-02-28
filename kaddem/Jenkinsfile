@@ -4,36 +4,36 @@ pipeline {
     stages {
         stage('Install dependencies') {
             steps {
-                dir('kaddem') {  // Exécute les commandes dans le répertoire kaddem
+                dir('kaddem') {
                     sh 'mvn clean install -DskipTests'
                 }
             }
         }
         stage('Unit Test') {
             steps {
-                dir('kaddem') {  // Exécute les commandes dans le répertoire kaddem
+                dir('kaddem') {
                     sh 'mvn test'
                 }
             }
         }
         stage('Build application') {
             steps {
-                dir('kaddem') {  // Exécute les commandes dans le répertoire kaddem
+                dir('kaddem') {
                     sh 'mvn package'
                 }
             }
         }
-
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    def scannerHome = tool 'SonarQube Scanner' // Vérifie le nom de ton scanner
-                    withSonarQubeEnv('sonnar_devops') { // Utilise le bon ID des credentials Sonar
-                        sh "${scannerHome}/bin/sonar-scanner"
+                dir('kaddem') { // 
+                    script {
+                        def scannerHome = tool 'SonarQube Scanner' // Vérifie le nom de ton scanner
+                        withSonarQubeEnv('sonnar_devops') { // Utilise bien l’ID correct des credentials
+                            sh "${scannerHome}/bin/sonar-scanner"
+                        }
                     }
                 }
             }
         }
-
     }
 }
