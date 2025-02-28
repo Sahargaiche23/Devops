@@ -25,12 +25,9 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
-                dir('kaddem') { // 
-                    script {
-                        def scannerHome = tool 'SonarQube Scanner' // Vérifie le nom de ton scanner
-                        withSonarQubeEnv('sonnar_devops') { // Utilise bien l’ID correct des credentials
-                            sh "${scannerHome}/bin/sonar-scanner"
-                        }
+                dir('kaddem') {
+                    withSonarQubeEnv('sonnar_devops') { // Vérifie que 'sonnar_devops' est bien configuré dans Jenkins
+                        sh 'sonar-scanner' // Supprime la partie "${scannerHome}/bin/"
                     }
                 }
             }
