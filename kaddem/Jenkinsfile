@@ -9,7 +9,6 @@ pipeline {
                 }
             }
         }
-
         stage('Unit Test') {
             steps {
                 dir('kaddem') {
@@ -17,18 +16,14 @@ pipeline {
                 }
             }
         }
-        stage('SonarQube Analysis') {
-                    steps {
-                        dir('kaddem') {
-                            script {
-                                def scannerHome = tool name: 'SonarQubeScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                                withSonarQubeEnv('SonarQube') { // Replace 'SonarQube' with your SonarQube server name configured in Jenkins
-                                    sh "${scannerHome}/bin/sonar-scanner_devops"
-                                }
-                            }
+          stage('SonarQube Analysis') {
+                steps {
+                    dir('kaddem') {  
+                        withSonarQubeEnv('sonnar_devops') {
+                            sh 'sonar-scanner_devops'
                         }
                     }
-
+                }
         stage('Build application') {
             steps {
                 dir('kaddem') {
@@ -36,7 +31,6 @@ pipeline {
                 }
             }
         }
-
 
         }
     }
