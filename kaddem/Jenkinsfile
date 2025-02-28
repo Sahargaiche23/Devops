@@ -9,6 +9,7 @@ pipeline {
                 }
             }
         }
+
         stage('Unit Test') {
             steps {
                 dir('kaddem') {
@@ -16,22 +17,23 @@ pipeline {
                 }
             }
         }
-          stage('SonarQube Analysis') {
-                steps {
-                    dir('kaddem') {  
-                        withSonarQubeEnv('sonnar_devops') {
-                            sh 'sonar-scanner_devops'
-                        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                dir('kaddem') {
+                    withSonarQubeEnv('sonnar_devops') {
+                        sh 'sonar-scanner_devops'  // ✅ Correction du nom du scanner
                     }
                 }
-        stage('Build application') {
+            }
+        }
+
+        stage('Build application') { // ✅ Correction de la position
             steps {
                 dir('kaddem') {
                     sh 'mvn package'
                 }
             }
-        }
-
         }
     }
 }
