@@ -22,13 +22,13 @@ pipeline {
             steps {
                 dir('kaddem') {
                     withSonarQubeEnv('sonnar_devops') {
-                        sh 'sonar-scanner_devops'  // ✅ Correction du nom du scanner
+                        sh '${SONAR_SCANNER_HOME}/bin/sonar-scanner_devops -Dsonar.projectKey=scanner_devops' // ✅ Ajout du projectKey
                     }
                 }
             }
         }
 
-        stage('Build application') { // ✅ Correction de la position
+        stage('Build application') {
             steps {
                 dir('kaddem') {
                     sh 'mvn package'
