@@ -32,16 +32,13 @@ pipeline {
             }
         }
         stage('SonarQube Analysis') {
-        steps{
-        script {
-        def scannerHome = tool 'sonor'
-        withSonarQubeEnv {
-        sh "${scannerHome}/bin/sonar-sonor"
-        }
-        }
-        }
-        }
-
-
-    }
-}
+                 steps {
+                     script {
+                         withSonarQubeEnv('SonarQube') {
+                             sh 'mvn sonar:sonar -Dsonar.projectKey=devopsSecure -Dsonar.host.url=http://localhost:9000 -Dsonar.token=sqp_375f28f81a4294199a2f8bb973b74d7e03c55c5e'
+                         }
+                     }
+                 }
+             }
+         }
+     }
