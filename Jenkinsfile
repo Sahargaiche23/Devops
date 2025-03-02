@@ -2,26 +2,40 @@ pipeline {
     agent any
 
     stages {
-        stage('Install dependencies') {
+        stage('Checkout') {
+            steps {
+                git branch: 'sahar', url: 'https://github.com/Sahargaiche23/Devops.git'
+            }
+        }
+
+        stage('Build') {
             steps {
                 script {
-                    sh 'npm install'
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
 
-        stage('Unit Test') {
+        stage('Test') {
             steps {
                 script {
-                    sh 'npm test'
+                    sh 'mvn test'
                 }
             }
         }
 
-        stage('Build application') {
+        stage('Package') {
             steps {
                 script {
-                    sh 'npm run build-dev'
+                    sh 'mvn package'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    sh 'scp target/*.jar user@server:/path/to/deploy/'
                 }
             }
         }
