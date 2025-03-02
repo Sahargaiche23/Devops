@@ -31,17 +31,23 @@ pipeline {
                 }
             }
         }
-       stage('SonarQube Analysis') {
-       steps{
-       script {
-       def scannerHome = tool 'scanner'
-       withSonarQubeEnv {
-       sh "${scannerHome}/bin/sonar-scanner"
-       }
-       }
-       }
-       }
 
-
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'scanner'
+                    withSonarQubeEnv('sonar') {  // Ensure 'sonar' matches the configuration in Jenkins
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=devops \
+                            -Dsonar.projectName=devops \
+                            -Dsonar.projectVersion=1.0 \
+                            -Dsonar.host.url=http://localhost:9000 \
+                            -Dsonar.token=squ_3a43c806c917653c92994306ab3eacadabd36b6c
+                        """
+                    }
+                }
+            }
+        }
     }
 }
