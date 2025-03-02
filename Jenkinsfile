@@ -32,12 +32,6 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
-            steps {
-                script {
-                    sh 'scp target/*.jar user@server:/path/to/deploy/'
-                }
-            }
-        }
+
     }
 }
