@@ -1,34 +1,29 @@
 pipeline {
     agent any
+
     stages {
-        stage('Checkout GIT') {
+        stage('Install dependencies') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: 'sahar']],
-                    userRemoteConfigs: [[url: '']]
-                ])
+                script {
+                    sh 'npm install'
+                }
             }
         }
 
-        stage('MVN CLEAN') {
+        stage('Unit Test') {
             steps {
-                sh 'mvn clean'
+                script {
+                    sh 'npm test'
+                }
             }
         }
 
-        stage('MVN COMPILE') {
+        stage('Build application') {
             steps {
-                sh 'mvn compile'
+                script {
+                    sh 'npm run build-dev'
+                }
             }
         }
-
-
-
-
-
-
-
-
-      }
     }
+}
