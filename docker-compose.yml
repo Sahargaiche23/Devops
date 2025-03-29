@@ -11,7 +11,7 @@ services:
     volumes:
       - db:/var/lib/mysql
 
-  app-tpfoyer:
+  app-kaddem:
     depends_on:
       - mysqldb
     image: sahargaiche11/khadem:latest
@@ -24,7 +24,7 @@ services:
           "spring.datasource.url": "jdbc:mysql://mysqldb:3306/khaddemApp?createDatabaseIfNotExist=true",
           "spring.datasource.username": "root",
           "spring.datasource.password": "root",
-          "spring.jpa.hibernate.ddl-auto": "create"
+          "spring.jpa.hibernate.ddl-auto": "update"
         }'
     stdin_open: true
     tty: true
