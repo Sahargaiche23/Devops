@@ -1,4 +1,4 @@
-version: "2"
+version: "3.8"
 services:
   backend:
     depends_on:
@@ -6,6 +6,9 @@ services:
     image: sahargaiche11/khadem:latest
     ports:
       - "8089:8089"
+    networks:
+      - mynetwork
+
   db:
     image: mysql:8.0
     container_name: mysql-db
@@ -14,3 +17,9 @@ services:
       MYSQL_ROOT_PASSWORD: admin
     ports:
       - "3307:3306"
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
