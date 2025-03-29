@@ -1,27 +1,54 @@
 package tn.esprit.spring.kaddem.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import java.io.Serializable;
+import java.util.Set;
 
 import javax.persistence.*;
-import java.io.Serializable;
-import java.util.List;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class Universite implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Universite implements Serializable{
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idUniversite;
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    private Integer idUniv;
     private String nomUniv;
     @OneToMany(cascade = CascadeType.ALL)
-    //  @JsonIgnore
-    private List<Departement>departements;
+    @JsonIgnore
+    private Set<Departement> departements;
+    public Universite() {
+    }
+
+    public Universite(String nomUniv) {
+        super();
+        this.nomUniv = nomUniv;
+    }
+
+    public Universite(Integer idUniv, String nomUniv) {
+        super();
+        this.idUniv = idUniv;
+        this.nomUniv = nomUniv;
+    }
+
+    public Set<Departement> getDepartements() {
+        return departements;
+    }
+
+    public void setDepartements(Set<Departement> departements) {
+        this.departements = departements;
+    }
+
+    public Integer getIdUniv() {
+        return idUniv;
+    }
+    public void setIdUniv(Integer idUniv) {
+        this.idUniv = idUniv;
+    }
+    public String getNomUniv() {
+        return nomUniv;
+    }
+    public void setNomUniv(String nomUniv) {
+        this.nomUniv = nomUniv;
+    }
+
 }
