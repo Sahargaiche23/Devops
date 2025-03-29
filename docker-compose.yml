@@ -9,7 +9,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - db:/var/lib/mysql
+      - khaddemApp:/var/lib/mysql
 
   app-kaddem:
     depends_on:
@@ -30,4 +30,4 @@ services:
     tty: true
 
 volumes:
-  db:
+  khaddemApp:
