@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven' // Assurez-vous que Maven est installé dans Jenkins
+    }
+
+    environment {
+        SONAR_SCANNER = tool 'SonarQubeScanner' // Nom de l'outil configuré dans Jenkins
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -24,28 +32,34 @@ pipeline {
             }
         }
 
-        stage('Package') {
+        stage('SonarQube Analysis') {
             steps {
                 script {
-                    sh 'mvn package'
+                    withSonarQubeEnv('SonarQube') { // Assurez-vous que "SonarQube" est bien configuré dans Jenkins
+                        sh "${SONAR_SCANNER}/bin/sonar-scanner \
+                            -Dsonar.projectKey=devopsSecure \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=http://localhost:9000 \
+                            -Dsonar.login=sqp_f2eaf381d07b589d399fa861e0001af1617f3df4"
+                    }
                 }
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('Quality Gate') {
             steps {
                 script {
-                    def scannerHome = tool 'scanner'
-                    withSonarQubeEnv('sonar') {  // Ensure 'sonar' matches the configuration in Jenkins
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=devops \
-                            -Dsonar.projectName=devops \
-                            -Dsonar.projectVersion=1.0 \
-                            -Dsonar.host.url=http://localhost:9000 \
-                            -Dsonar.token=squ_3a43c806c917653c92994306ab3eacadabd36b6c
-                        """
+                    timeout(time: 2, unit: 'MINUTES') { // Timeout pour éviter un blocage du pipeline
+                        waitForQualityGate abortPipeline: true
                     }
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                script {
+                    sh 'mvn package'
                 }
             }
         }
