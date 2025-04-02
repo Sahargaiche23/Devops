@@ -1,5 +1,7 @@
 version: '3.8'
+
 services:
+  # Service pour la base de données MySQL
   mysqldb:
     image: mysql:8.0
     restart: unless-stopped
@@ -11,6 +13,7 @@ services:
     volumes:
       - khaddemApp:/var/lib/mysql
 
+  # Service backend Spring Boot
   app-kaddem:
     depends_on:
       - mysqldb
@@ -19,15 +22,34 @@ services:
     ports:
       - "8089:8089"
     environment:
-      SPRING_APPLICATION_JSON:
-        '{
-          "spring.datasource.url": "jdbc:mysql://mysqldb:3306/khaddemApp?createDatabaseIfNotExist=true",
-          "spring.datasource.username": "root",
-          "spring.datasource.password": "sahar",
-          "spring.jpa.hibernate.ddl-auto": "update"
-        }'
+      SPRING_APPLICATION_JSON: '{
+        "spring.datasource.url": "jdbc:mysql://mysqldb:3306/khaddemApp?createDatabaseIfNotExist=true",
+        "spring.datasource.username": "root",
+        "spring.datasource.password": "sahar",
+        "spring.jpa.hibernate.ddl-auto": "update"
+      }'
     stdin_open: true
     tty: true
 
+  # Service frontend Angular avec Nginx
+  frontend:
+    depends_on:
+      - app-kaddem
+    image: sahargaiche11/angular-app:latest
+    restart: on-failure
+    ports:
+      - "80:80"
+
+    volumes:
+      - ./dist:/usr/share/nginx/html  # Volume pour servir le build Angular
+    networks:
+      - frontend_network
+
+# Volumes pour persistance des données MySQL
 volumes:
   khaddemApp:
+
+# Networks pour isoler les services
+networks:
+  frontend_network:
+    driver: bridge
