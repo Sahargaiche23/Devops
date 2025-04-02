@@ -11,6 +11,8 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
+
 @AllArgsConstructor
 @RequestMapping("/contrat")
 public class ContratRestController {

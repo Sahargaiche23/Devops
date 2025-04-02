@@ -8,7 +8,10 @@ import tn.esprit.spring.kaddem.services.IDepartementService;
 import java.util.List;
 
 @RestController
+
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
+
 @RequestMapping("/departement")
 public class DepartementRestController {
 	IDepartementService departementService;

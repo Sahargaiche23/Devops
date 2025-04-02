@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/etudiant")
 public class EtudiantRestController {
 	@Autowired
@@ -32,6 +33,7 @@ public class EtudiantRestController {
 		Etudiant etudiant = etudiantService.addEtudiant(e);
 		return etudiant;
 	}
+
 
 	// http://localhost:8089/Kaddem/etudiant/remove-etudiant/1
 	@DeleteMapping("/remove-etudiant/{etudiant-id}")
