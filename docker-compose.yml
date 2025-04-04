@@ -32,13 +32,23 @@ services:
     tty: true
 
   # Service frontend Angular avec Nginx
-  
+  frontend:
+    depends_on:
+      - app-kaddem
+    image: sahargaiche11/angular-app:latest
+    restart: on-failure
+    ports:
+      - "8888:80"
+    volumes:
+      - ./dist/khaddem-front:/usr/share/nginx/html
+    networks:
+      - frontend_network
 
 # Volumes pour persistance des données MySQL
 volumes:
   khaddemApp:
 
-# Networks pour isoler les services
+# Réseaux pour isoler les services
 networks:
   frontend_network:
     driver: bridge
