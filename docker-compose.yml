@@ -32,18 +32,7 @@ services:
     tty: true
 
   # Service frontend Angular avec Nginx
-  frontend:
-    depends_on:
-      - app-kaddem
-    image: sahargaiche11/angular-app:latest
-    restart: on-failure
-    ports:
-      - "80:80"
-
-    volumes:
-      - ./dist:/usr/share/nginx/html  # Volume pour servir le build Angular
-    networks:
-      - frontend_network
+  
 
 # Volumes pour persistance des données MySQL
 volumes:
