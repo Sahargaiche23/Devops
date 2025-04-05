@@ -20,14 +20,6 @@ pipeline {
             }
         }
 
-        // Stage 3: SonarQube Analysis
-        stage('SonarQube') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar -Dsonar.projectKey=kaddem'
-                }
-            }
-        }
 
         // Stage 4: Docker Build (Optional)
         stage('Docker Build') {
