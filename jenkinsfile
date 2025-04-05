@@ -1,26 +1,46 @@
-pipeline{
-agent any
-stages {
-stage('Install dependencies') {
-steps{
-script {
-sh('npm install')
-}
-}
-}
-stage('Unit Test') {
-steps{
-script {
-sh('npm test')
-}
-}
-}
-stage('Build application') {
-steps{
-script {
-sh('npm run build-dev')
-}
-}
-}
-}
+pipeline {
+    agent any
+    tools {
+        jdk 'JDK17'
+        maven 'Maven'
+    }
+    stages {
+        // Stage 1: Checkout (automatic in multibranch)
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        // Stage 2: Build and Test
+        stage('Build & Test') {
+            steps {
+                sh 'mvn clean package'
+                junit 'target/surefire-reports/*.xml'
+            }
+        }
+
+        // Stage 3: SonarQube Analysis
+        stage('SonarQube') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=kaddem'
+                }
+            }
+        }
+
+        // Stage 4: Docker Build (Optional)
+        stage('Docker Build') {
+            steps {
+                script {
+                    docker.build("your-dockerhub/kaddem:${env.BRANCH_NAME}").push()
+                }
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+        }
+    }
 }
