@@ -3,10 +3,11 @@ pipeline {
     tools {
         jdk 'JDK17'
         maven 'Maven'
+        sonarQubeScanner 'SonarQubeScanner'
     }
-      environment {
-            SONAR_SCANNER = tool 'SonarQubeScanner'
-        }
+        environment {
+              SONAR_SCANNER_OPTS = "-Xmx512m"
+          }
 
     stages {
         // Stage 1: Checkout (automatic in multibranch)
@@ -23,17 +24,11 @@ pipeline {
                 junit 'target/surefire-reports/*.xml'
             }
         }
-        stage('SonarQube Analysis') {
+        // Stage 3: SonarQube Analysis
+         stage('SonarQube Analysis') {
                     steps {
-                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                            sh """
-                            sonar-scanner \
-                              -Dsonar.projectKey=devopsSecure \
-                              -Dsonar.sources=. \
-                              -Dsonar.java.binaries=target/classes \
-                              -Dsonar.host.url=http://localhost:9000 \
-                              -Dsonar.login=$SONAR_TOKEN
-                            """
+                        withSonarQubeEnv('SonarQube') {
+                            sh 'sonar-scanner -Dsonar.projectKey=devopsSecure -Dsonar.sources=. -Dsonar.java.binaries=target/classes'
                         }
                     }
                 }
