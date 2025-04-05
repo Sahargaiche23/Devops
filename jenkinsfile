@@ -4,6 +4,10 @@ pipeline {
         jdk 'JDK17'
         maven 'Maven'
     }
+      environment {
+            SONAR_SCANNER = tool 'SonarQubeScanner'
+        }
+
     stages {
         // Stage 1: Checkout (automatic in multibranch)
         stage('Checkout') {
@@ -19,16 +23,28 @@ pipeline {
                 junit 'target/surefire-reports/*.xml'
             }
         }
-
-
-        // Stage 4: Docker Build (Optional)
-        stage('Docker Build') {
-            steps {
-                script {
-                    docker.build("your-dockerhub/kaddem:${env.BRANCH_NAME}").push()
+        stage('SonarQube Analysis') {
+                    steps {
+                        withSonarQubeEnv('SonarQube') {
+                            sh """
+                                ${SONAR_SCANNER}/bin/sonar-scanner \
+                                -Dsonar.projectKey=devopsSecure \
+                                -Dsonar.sources=. \
+                                -Dsonar.java.binaries=target/classes \
+                                -Dsonar.host.url=http://localhost:9000
+                            """
+                        }
+                    }
                 }
-            }
-        }
+
+                stage('Quality Gate') {
+                    steps {
+                        timeout(time: 2, unit: 'MINUTES') {
+                            waitForQualityGate abortPipeline: true
+                        }
+                    }
+                }
+
     }
     post {
         always {
