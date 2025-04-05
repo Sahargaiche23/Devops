@@ -25,13 +25,14 @@ pipeline {
         }
         stage('SonarQube Analysis') {
                     steps {
-                        withSonarQubeEnv('SonarQube') {
+                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                             sh """
-                                ${SONAR_SCANNER}/bin/sonar-scanner \
-                                -Dsonar.projectKey=devopsSecure \
-                                -Dsonar.sources=. \
-                                -Dsonar.java.binaries=target/classes \
-                                -Dsonar.host.url=http://localhost:9000
+                            sonar-scanner \
+                              -Dsonar.projectKey=devopsSecure \
+                              -Dsonar.sources=. \
+                              -Dsonar.java.binaries=target/classes \
+                              -Dsonar.host.url=http://localhost:9000 \
+                              -Dsonar.login=$SONAR_TOKEN
                             """
                         }
                     }
