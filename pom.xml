@@ -93,8 +93,7 @@
         </repository>
     </distributionManagement>
 
-    <bui
-    ld>
+    <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -117,5 +116,5 @@
                 </configuration>
             </plugin>
         </plugins>
-    </bui>
+    </build>
 </project>
