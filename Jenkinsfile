@@ -60,12 +60,6 @@ pipeline {
             }
         }
 
-        stage('Package') {
-            steps {
-                script {
-                    sh 'mvn package'
-                }
-            }
-        }
+
     }
 }
