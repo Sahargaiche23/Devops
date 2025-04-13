@@ -63,28 +63,39 @@ pipeline {
                     }
                 }
 
-                stage('Push to Docker Registry') {
-                    steps {
-                        script {
-                            // First verify registry is accessible
-                            sh "curl -I http://${DOCKER_REGISTRY}/v2/" || true
+               // Previous stages remain the same...
 
-                            // Then login and push
-                            withCredentials([usernamePassword(
-                                credentialsId: 'docker-creds',
-                                usernameVariable: 'DOCKER_USER',
-                                passwordVariable: 'DOCKER_PASS'
-                            )]) {
-                                sh """
-                                    docker login ${DOCKER_REGISTRY} \
-                                        -u ${DOCKER_USER} \
-                                        -p ${DOCKER_PASS}
-                                    docker push ${DOCKER_REGISTRY}/kaddem:0.0.1
-                                """
-                            }
-                        }
-                    }
-                }
+                       stage('Verify Registry') {
+                           steps {
+                               script {
+                                   // CORRECT: Using a string for the shell command
+                                   def result = sh(script: "curl -I http://${DOCKER_REGISTRY}/v2/ || true", returnStatus: true)
+                                   if (result != 0) {
+                                       error "Docker registry at ${DOCKER_REGISTRY} is not accessible"
+                                   }
+                               }
+                           }
+                       }
+
+                       stage('Push to Docker Registry') {
+                           steps {
+                               script {
+                                   withCredentials([usernamePassword(
+                                       credentialsId: 'docker-creds',
+                                       usernameVariable: 'DOCKER_USER',
+                                       passwordVariable: 'DOCKER_PASS'
+                                   )]) {
+                                       // CORRECT: Proper string parameter for sh step
+                                       sh """
+                                           docker login ${DOCKER_REGISTRY} \
+                                               -u ${DOCKER_USER} \
+                                               -p ${DOCKER_PASS}
+                                           docker push ${DOCKER_REGISTRY}/kaddem:0.0.1
+                                       """
+                                   }
+                               }
+                           }
+                       }
 
     }
 
