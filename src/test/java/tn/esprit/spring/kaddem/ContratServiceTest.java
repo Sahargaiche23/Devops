@@ -72,6 +72,7 @@ public class ContratServiceTest {
         Etudiant etudiant = new Etudiant();
         etudiant.setNomE("Doe");
         etudiant.setPrenomE("John");
+        etudiant.setContrats(new HashSet<>()); // 👈 cette ligne évite le NPE
 
         Contrat contrat = new Contrat();
         contrat.setIdContrat(1);
