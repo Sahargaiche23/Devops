@@ -31,11 +31,6 @@ pipeline {
             }
         }
 
-        stage('Deploy to Nexus') {
-            steps {
-                sh 'mvn deploy -DaltDeploymentRepository=nexus::default::http://admin:admin@nexus@localhost:8081/repository/maven-releases/'
-            }
-        }
 
         stage('Docker Build') {
             steps {
