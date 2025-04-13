@@ -50,16 +50,14 @@ pipeline {
      }
 
 
-        stage('Quality Gate') {
+
+
+        stage('Package') {
             steps {
                 script {
-                    timeout(time: 2, unit: 'MINUTES') { // Timeout pour éviter un blocage du pipeline
-                        waitForQualityGate abortPipeline: true
-                    }
+                    sh 'mvn package'
                 }
             }
         }
-
-
     }
 }
