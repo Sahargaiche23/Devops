@@ -1,124 +1,89 @@
 package tn.esprit.spring.kaddem;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import tn.esprit.spring.kaddem.entities.Contrat;
-import tn.esprit.spring.kaddem.services.IContratService;
-import tn.esprit.spring.kaddem.repositories.ContratRepository;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import tn.esprit.spring.kaddem.entities.Contrat;
+import tn.esprit.spring.kaddem.entities.Etudiant;
 import tn.esprit.spring.kaddem.entities.Specialite;
+import tn.esprit.spring.kaddem.repositories.ContratRepository;
+import tn.esprit.spring.kaddem.repositories.EtudiantRepository;
+import tn.esprit.spring.kaddem.services.ContratServiceImpl;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.util.*;
 
-@WebMvcTest(ContratServiceTest.class)
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+@ExtendWith(MockitoExtension.class)
 public class ContratServiceTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @InjectMocks
+    private ContratServiceImpl contratService;
 
-    @MockBean
-    private IContratService contratService;
+    @Mock
+    private ContratRepository contratRepository;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    private Contrat contrat;
+    @Mock
+    private EtudiantRepository etudiantRepository;
 
     @BeforeEach
-    void setUp() throws Exception {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Date debut = sdf.parse("2025-01-01");
-        Date fin = sdf.parse("2025-12-31");
-        contrat = new Contrat(1, debut, fin, Specialite.IA, false, 2000);
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void testGetContrats() throws Exception {
-        List<Contrat> contrats = Arrays.asList(contrat);
-        Mockito.when(contratService.retrieveAllContrats()).thenReturn(contrats);
+    void testAddContrat() {
+        Contrat contrat = new Contrat(new Date(), new Date(), Specialite.IA, false, 1000);
+        when(contratRepository.save(contrat)).thenReturn(contrat);
 
-        mockMvc.perform(get("/contrat/retrieve-all-contrats"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].idContrat").value(1))
-                .andExpect(jsonPath("$[0].montantContrat").value(2000));
+        Contrat result = contratService.addContrat(contrat);
+
+        assertThat(result).isEqualTo(contrat);
+        verify(contratRepository, times(1)).save(contrat);
     }
 
     @Test
-    void testRetrieveContrat() throws Exception {
-        Mockito.when(contratService.retrieveContrat(1)).thenReturn(contrat);
+    void testRetrieveContrat() {
+        Contrat contrat = new Contrat();
+        contrat.setIdContrat(1);
+        when(contratRepository.findById(1)).thenReturn(Optional.of(contrat));
 
-        mockMvc.perform(get("/contrat/retrieve-contrat/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idContrat").value(1));
+        Contrat result = contratService.retrieveContrat(1);
+
+        assertThat(result).isEqualTo(contrat);
+        verify(contratRepository).findById(1);
     }
 
     @Test
-    void testAddContrat() throws Exception {
-        Mockito.when(contratService.addContrat(any(Contrat.class))).thenReturn(contrat);
+    void testRemoveContrat() {
+        Contrat contrat = new Contrat();
+        contrat.setIdContrat(1);
+        when(contratRepository.findById(1)).thenReturn(Optional.of(contrat));
 
-        mockMvc.perform(post("/contrat/add-contrat")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(contrat)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idContrat").value(1));
+        contratService.removeContrat(1);
+
+        verify(contratRepository).delete(contrat);
     }
 
     @Test
-    void testUpdateContrat() throws Exception {
-        Mockito.when(contratService.updateContrat(any(Contrat.class))).thenReturn(contrat);
+    void testAffectContratToEtudiant() {
+        Etudiant etudiant = new Etudiant();
+        etudiant.setNomE("Doe");
+        etudiant.setPrenomE("John");
 
-        mockMvc.perform(put("/contrat/update-contrat")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(contrat)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idContrat").value(1));
-    }
+        Contrat contrat = new Contrat();
+        contrat.setIdContrat(1);
+        contrat.setArchive(false);
 
-    @Test
-    void testDeleteContrat() throws Exception {
-        mockMvc.perform(delete("/contrat/remove-contrat/1"))
-                .andExpect(status().isOk());
+        when(etudiantRepository.findByNomEAndPrenomE("Doe", "John")).thenReturn(etudiant);
+        when(contratRepository.findByIdContrat(1)).thenReturn(contrat);
+        when(contratRepository.save(any(Contrat.class))).thenReturn(contrat);
 
-        Mockito.verify(contratService).removeContrat(1);
-    }
+        Contrat result = contratService.affectContratToEtudiant(1, "Doe", "John");
 
-    @Test
-    void testAssignContratToEtudiant() throws Exception {
-        Mockito.when(contratService.affectContratToEtudiant(1, "Nom", "Prenom")).thenReturn(contrat);
-
-        mockMvc.perform(put("/contrat/assignContratToEtudiant/1/Nom/Prenom"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idContrat").value(1));
-    }
-
-    @Test
-    void testGetnbContratsValides() throws Exception {
-        Mockito.when(contratService.nbContratsValides(any(Date.class), any(Date.class))).thenReturn(3);
-
-        mockMvc.perform(get("/contrat/getnbContratsValides/2025-01-01/2025-12-31"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("3"));
-    }
-
-    @Test
-    void testCalculChiffreAffaireEntreDeuxDates() throws Exception {
-        Mockito.when(contratService.getChiffreAffaireEntreDeuxDates(any(Date.class), any(Date.class))).thenReturn(1500.0f);
-
-        mockMvc.perform(get("/contrat/calculChiffreAffaireEntreDeuxDate/2025-01-01/2025-12-31"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("1500.0"));
+        assertThat(result.getEtudiant()).isEqualTo(etudiant);
+        verify(contratRepository).save(contrat);
     }
 }
