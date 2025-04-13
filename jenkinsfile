@@ -72,7 +72,6 @@ pipeline {
                     }
                 }
 
-               // Previous stages remain the same...
 
                        stage('Verify Registry') {
                            steps {

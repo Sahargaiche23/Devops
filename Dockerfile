@@ -1,21 +1,14 @@
-# Use a lightweight OpenJDK 17 image
+# Utilise une image légère avec OpenJDK 17
 FROM openjdk:17-jdk-slim
 
-# Create a non-root user and group
-RUN groupadd -r spring && useradd -r -g spring spring
-
-# Create a working directory and set ownership
+# Crée un dossier de travail dans le conteneur
 WORKDIR /app
-RUN chown -R spring:spring /app
 
-# Copy the JAR file (built from your Maven/Gradle project)
-COPY --chown=spring:spring target/*.jar app.jar
+# Copie le fichier .jar compilé dans le conteneur
+COPY target/*.jar app.jar
 
-# Switch to the non-root user
-USER spring
-
-# Expose the Spring Boot application port
+# Expose le port utilisé par ton application Spring Boot
 EXPOSE 8089
 
-# Run the application
+# Commande pour démarrer l'application
 ENTRYPOINT ["java", "-jar", "app.jar"]
