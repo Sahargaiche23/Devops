@@ -48,16 +48,23 @@ pipeline {
                 }
             }
         }
+        stage('Build Docker Image') {
+                            steps {
+                                script {
+                                    docker.build("${DOCKER_REGISTRY}/kaddem:0.0.1")
+                                }
+                            }
+                        }
 
-        stage('Quality Gate') {
-            steps {
-                script {
-                    timeout(time: 2, unit: 'MINUTES') { // Timeout pour éviter un blocage du pipeline
-                        waitForQualityGate abortPipeline: true
+        stage('Deploy to Nexus') {
+                    steps {
+                        withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                            sh '''
+                                mvn deploy -DskipTests -Dnexus.username=$NEXUS_USER -Dnexus.password=$NEXUS_PASS
+                            '''
+                        }
                     }
                 }
-            }
-        }
 
         stage('Package') {
             steps {
