@@ -86,7 +86,7 @@ pipeline {
                                        passwordVariable: 'DOCKER_PASS'
                                    )]) {
                                        sh '''
-                                           echo "$DOCKER_PASS" | docker login 192.168.56.10:5000 \
+                                           echo "$DOCKER_PASS" | docker login http://192.168.56.10:5000 \
                                                -u "$DOCKER_USER" \
                                                --password-stdin
                                            docker push 192.168.56.10:5000/kaddem:0.0.1
