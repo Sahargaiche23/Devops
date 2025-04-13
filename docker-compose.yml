@@ -16,7 +16,7 @@ services:
       - events-network
 
   spring-boot-app:
-    image: oumaimahajji/kaddem-app:0.0.1
+    image: oumaimahajji/kaddem:0.0.1
     container_name: DEVOPS
     restart: on-failure
     environment:
