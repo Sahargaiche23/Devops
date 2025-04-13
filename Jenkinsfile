@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'salma', url: 'https://github.com/Sahargaiche23/Devops.git'
+                git branch: 'SalmaEquipe', url: 'https://github.com/Sahargaiche23/Devops.git'
             }
         }
 
