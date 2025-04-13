@@ -6,6 +6,8 @@ pipeline {
     }
     environment {
         SONAR_SCANNER = tool 'SonarQubeScanner'
+        DOCKER_REGISTRY = '192.168.56.10:5000'
+
     }
 
     stages {
@@ -53,19 +55,36 @@ pipeline {
             }
         }
 
-        // Stage 6: Docker Build & Push to Nexus
-                stage('Docker Push to Nexus') {
+        stage('Build Docker Image') {
                     steps {
-                        withCredentials([usernamePassword(credentialsId: 'nexus-creds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                            sh """
-                                docker build -t 192.168.56.10:5000/kaddem:0.0.1 .
-                                echo "$NEXUS_PASS" | docker login 192.168.56.10:5000 -u "$NEXUS_USER" --password-stdin
-                                docker push 192.168.56.10:5000/kaddem:0.0.1
-                            """
+                        script {
+                            docker.build("${DOCKER_REGISTRY}/kaddem:0.0.1")
                         }
                     }
                 }
 
+                stage('Push to Docker Registry') {
+                    steps {
+                        script {
+                            // First verify registry is accessible
+                            sh "curl -I http://${DOCKER_REGISTRY}/v2/" || true
+
+                            // Then login and push
+                            withCredentials([usernamePassword(
+                                credentialsId: 'docker-creds',
+                                usernameVariable: 'DOCKER_USER',
+                                passwordVariable: 'DOCKER_PASS'
+                            )]) {
+                                sh """
+                                    docker login ${DOCKER_REGISTRY} \
+                                        -u ${DOCKER_USER} \
+                                        -p ${DOCKER_PASS}
+                                    docker push ${DOCKER_REGISTRY}/kaddem:0.0.1
+                                """
+                            }
+                        }
+                    }
+                }
 
     }
 
