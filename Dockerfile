@@ -12,4 +12,3 @@ EXPOSE 8089
 
 # Commande pour démarrer l'application
 ENTRYPOINT ["java", "-jar", "app.jar"]
-git add Dockerfile
