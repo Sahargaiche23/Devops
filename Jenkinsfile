@@ -4,8 +4,8 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                // Clean and compile the project
-                sh 'mvn clean compile'
+                // Clean and package the project
+                sh 'mvn clean package'  // Ensures JAR is created in target/
             }
         }
 
@@ -30,7 +30,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Docker Build') {
             steps {
@@ -140,7 +139,6 @@ pipeline {
         }
     } // End of stages
 
-    // Configure post-build actions for notification in case of failure
     post {
         failure {
             emailext (
