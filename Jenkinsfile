@@ -35,7 +35,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    withSonarQubeEnv('SonarQube') { // Assurez-vous que "SonarQube" est bien configuré dans Jenkins
+                    withSonarQubeEnv('SonarQubeScanner') { // Assurez-vous que "SonarQube" est bien configuré dans Jenkins
                         sh "${SONAR_SCANNER}/bin/sonar-scanner \
                             -Dsonar.projectKey=devopsSecure \
                             -Dsonar.sources=. \
