@@ -33,17 +33,7 @@ pipeline {
 
         stage('Deploy to Nexus') {
             steps {
-                script {
-                    def startTime = System.currentTimeMillis()
-                    try {
-                        echo "Déploiement vers Nexus (tests ignorés)..."
-                        sh 'mvn deploy -DskipTests'
-                    } finally {
-                        def endTime = System.currentTimeMillis()
-                        def duration = (endTime - startTime) / 1000
-                        echo "Durée de l'étape Deploy to Nexus : ${duration}s"
-                    }
-                }
+                sh 'mvn deploy -DaltDeploymentRepository=nexus::default::http://admin:admin@nexus@localhost:8081/repository/maven-releases/'
             }
         }
 
