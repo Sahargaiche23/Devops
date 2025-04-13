@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'sahar', url: 'https://github.com/Sahargaiche23/Devops.git'
+                git branch: 'Mariem', url: 'https://github.com/Sahargaiche23/Devops.git'
             }
         }
 
