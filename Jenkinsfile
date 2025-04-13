@@ -32,16 +32,19 @@ pipeline {
             }
         }
 
+
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    withSonarQubeEnv('SonarQubeScanner') { // Assurez-vous que "SonarQube" est bien configuré dans Jenkins
-                        sh "${SONAR_SCANNER}/bin/sonar-scanner \
-                            -Dsonar.projectKey=devopsSecure \
-                            -Dsonar.sources=. \
-                            -Dsonar.java.binaries=**/target/classes \
-                            -Dsonar.host.url=http://localhost:9000 \
-                            -Dsonar.login=squ_d7839e2d6a74c10227370756390d4ef41333b2d1"
+                    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+                        withSonarQubeEnv('SonarQubeScanner') {
+                            sh "${SONAR_SCANNER}/bin/sonar-scanner \
+                                -Dsonar.projectKey=devopsSecure \
+                                -Dsonar.sources=. \
+                                -Dsonar.java.binaries=**/target/classes \
+                                -Dsonar.host.url=http://localhost:9000 \
+                                -Dsonar.login=${SONAR_TOKEN}"
+                        }
                     }
                 }
             }
