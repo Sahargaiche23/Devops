@@ -40,7 +40,7 @@ pipeline {
                             -Dsonar.projectKey=devopsSecure \
                             -Dsonar.sources=. \
                             -Dsonar.host.url=http://localhost:9000 \
-                            -Dsonar.login=sqp_f2eaf381d07b589d399fa861e0001af1617f3df4"
+                            -Dsonar.login=squ_d7839e2d6a74c10227370756390d4ef41333b2d1"
                     }
                 }
             }
