@@ -75,46 +75,9 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    docker.build("${DOCKER_REGISTRY}/kaddem:${APP_VERSION}")
-                }
-            }
-        }
-
- stage('Deploy Monitoring') {
-            steps {
-                script {
-                    parallel {
-                        stage('Prometheus') {
-                            steps {
-                                timeout(time: 1, unit: 'MINUTES') {
-                                    sh 'docker-compose up -d prometheus'
-                                    sleep 7
-                                    echo "Prometheus running at http://192.168.1.18:9090"
-                                }
-                            }
-                        }
-                        stage('Grafana') {
-                            steps {
-                                timeout(time: 1, unit: 'MINUTES') {
-                                    sh 'docker-compose up -d grafana'
-                                    sleep 2
-                                    echo "Grafana running at http://192.168.1.18:3000"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-
-    post {
-        always {
-            // Clean up workspace
-            cleanWs()
-        }
     }
 }
+
+
+
+
