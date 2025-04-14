@@ -8,3 +8,4 @@ COPY target/*.jar /app/app.jar
 EXPOSE 8089
 # Specify the command to run your application
 CMD ["java", "-jar", "app.jar"]
+

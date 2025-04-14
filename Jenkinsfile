@@ -66,13 +66,6 @@ pipeline {
                 }
             }
         }
-        stage('Build Docker Image') {
-                                    steps {
-                                        script {
-                                            docker.build("${DOCKER_REGISTRY}/kaddem:0.0.1")
-                                        }
-                                    }
-                                }
 
         stage('Package') {
             steps {
