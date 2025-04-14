@@ -2,9 +2,8 @@ version: '3.8'
 
 services:
   mysql:
-    image: mysql:8.0-debian
+    image: mysql:8
     container_name: mysql_db
-    command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: kaddem
@@ -12,11 +11,6 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
 
   kaddem-app:
     image: 192.168.56.10:5000/kaddem:0.0.1
@@ -27,44 +21,26 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/kaddem
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
-      JAVA_OPTS: "-Xms128m -Xmx256m"
     ports:
       - "8089:8089"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+    depends_on:
+      - kaddem-app
 
-  # Uncomment this section only when needed for specific demos
-  # prometheus:
-  #   image: prom/prometheus:latest
-  #   command:
-  #     - '--config.file=/etc/prometheus/prometheus.yml'
-  #     - '--storage.tsdb.retention.time=1d'
-  #     - '--web.enable-lifecycle'
-  #   ports:
-  #     - "9090:9090"
-  #   volumes:
-  #     - ./monitoring/prometheus:/etc/prometheus
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.2'
-  #         memory: 256M
-
-  # grafana:
-  #     image: grafana/grafana:latest
-  #     ports:
-  #       - "3000:3000"
-  #     volumes:
-  #       - grafana_data:/var/lib/grafana
-  #     deploy:
-  #       resources:
-  #         limits:
-  #           cpus: '0.2'
-  #           memory: 256M
+  grafana:
+      image: grafana/grafana
+      ports:
+        - "3000:3000"
+      volumes:
+        - grafana_data:/var/lib/grafana
+      depends_on:
+        - prometheus
 
 volumes:
-  mysql_data:
-  grafana_data:
+    mysql_data:
+    grafana_data:

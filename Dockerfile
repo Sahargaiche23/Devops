@@ -1,27 +1,23 @@
-# Use Eclipse Temurin JRE (smaller than full JDK)
-FROM eclipse-temurin:17-jre-alpine
+# Utilise une image légère avec OpenJDK 17
+FROM openjdk:17-jdk-slim
 
-# Add labels for better maintainability
-LABEL maintainer="Student" \
-      description="Spring Boot Kaddem Application"
+# Crée un utilisateur non-root
+RUN useradd -m -u 1000 appuser
 
-# Create a non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# Set working directory
+# Crée un dossier de travail dans le conteneur
 WORKDIR /app
 
-# Copy only the JAR file
+# Copie le fichier .jar compilé dans le conteneur
 COPY target/*.jar app.jar
 
-# Set ownership
-RUN chown -R appuser:appgroup /app
+# Change les permissions du fichier JAR pour l'utilisateur non-root
+RUN chown appuser:appuser app.jar
 
-# Switch to non-root user
+# Passe à l'utilisateur non-root
 USER appuser
 
-# Expose port
+# Expose le port utilisé par ton application Spring Boot
 EXPOSE 8089
 
-# Set JVM options to reduce memory usage
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+# Commande pour démarrer l'application
+ENTRYPOINT ["java", "-jar", "app.jar"]
