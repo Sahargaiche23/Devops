@@ -145,10 +145,7 @@ pipeline {
         always {
             // Clean up workspace
             cleanWs()
-                sh '''
-                docker container prune -f || true
-                docker image prune -f || true
-            '''
+
         }
     }
 }
