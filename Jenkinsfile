@@ -92,7 +92,7 @@ pipeline {
                                 timeout(time: 1, unit: 'MINUTES') {
                                     sh 'docker-compose up -d prometheus'
                                     sleep 7
-                                    echo "Prometheus running at http://192.168.56.10:9090"
+                                    echo "Prometheus running at http://192.168.1.18:9090"
                                 }
                             }
                         }
@@ -101,7 +101,7 @@ pipeline {
                                 timeout(time: 1, unit: 'MINUTES') {
                                     sh 'docker-compose up -d grafana'
                                     sleep 2
-                                    echo "Grafana running at http://192.168.56.10:3000"
+                                    echo "Grafana running at http://192.168.1.18:3000"
                                 }
                             }
                         }
