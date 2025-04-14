@@ -2,45 +2,88 @@ version: '3.8'
 
 services:
   mysql:
-    image: mysql:8
+    image: mysql:8-alpine  # Lighter Alpine-based image
     container_name: mysql_db
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: kaddem
+      MYSQL_INNODB_BUFFER_POOL_SIZE: 256M  # Optimize memory usage
+      TZ: UTC  # Set timezone
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   kaddem-app:
     image: 192.168.56.10:5000/kaddem:0.0.1
     container_name: kaddem_container
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/kaddem
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/kaddem?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      SPRING_PROFILES_ACTIVE: prod  # Ensure production profile is active
+      JAVA_OPTS: "-Xmx512m -Xms256m"  # Limit JVM memory
     ports:
       - "8089:8089"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:v2.40.5  # Pinned version
     ports:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus:/etc/prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'  # Reduce retention period
+      - '--storage.tsdb.retention.size=2GB'  # Limit storage size
     depends_on:
       - kaddem-app
 
   grafana:
-      image: grafana/grafana
-      ports:
-        - "3000:3000"
-      volumes:
-        - grafana_data:/var/lib/grafana
-      depends_on:
-        - prometheus
+    image: grafana/grafana:9.3.2  # Pinned version
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      GF_SERVER_ENABLE_GZIP: "true"  # Enable compression
+      GF_SECURITY_ADMIN_PASSWORD: "admin"  # Set default password
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+    depends_on:
+      - prometheus
 
 volumes:
-    mysql_data:
-    grafana_data:
+  mysql_data:
+  grafana_data:
