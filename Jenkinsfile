@@ -80,7 +80,7 @@ pipeline {
                                        sh 'docker-compose pull'          // pull latest images if needed
                                        sh 'docker-compose up -d'         // start app + mysql
                                    }
-                               }
+             }
     }
 }
 
