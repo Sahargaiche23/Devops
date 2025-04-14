@@ -32,25 +32,24 @@ pipeline {
             }
         }
 
-     stage('SonarQube Analysis') {
-         steps {
-             script {
-                 withSonarQubeEnv('SonarQubeScanner') {
-                     sh """
-                         ${SONAR_SCANNER}/bin/sonar-scanner \
-                             -Dsonar.projectKey=devopsSecure \
-                             -Dsonar.sources=. \
-                             -Dsonar.java.binaries=target/classes \
-                             -Dsonar.host.url=http://localhost:9000 \
-                             -Dsonar.login=squ_d7839e2d6a74c10227370756390d4ef41333b2d1
-                     """
-                 }
-             }
-         }
-     }
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv('SonarQubeScanner') {
+                        sh """
+                            ${SONAR_SCANNER}/bin/sonar-scanner \\
+                                -Dsonar.projectKey=devopsSecure \\
+                                -Dsonar.sources=. \\
+                                -Dsonar.java.binaries=target/classes \\
+                                -Dsonar.host.url=http://localhost:9000 \\
+                                -Dsonar.login=squ_d7839e2d6a74c10227370756390d4ef41333b2d1
+                        """
+                    }
+                }
+            }
+        }
 
-
-stage('Deploy to Nexus') {
+        stage('Deploy to Nexus') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -68,7 +67,6 @@ stage('Deploy to Nexus') {
             }
         }
 
-
         stage('Package') {
             steps {
                 script {
@@ -77,59 +75,66 @@ stage('Deploy to Nexus') {
             }
         }
 
-        stage('Deploy Monitoring') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    parallel {
-                        stage('Prometheus') {
-                            steps {
-                                timeout(time: 2, unit: 'MINUTES') {  // Increased timeout
-                                    sh '''
-                                        docker-compose up -d prometheus
-                                        # Wait for Prometheus to be healthy
-                                        until curl -s http://prometheus:9090/-/ready; do
-                                            sleep 5
-                                            echo "Waiting for Prometheus to start..."
-                                        done
-                                    '''
-                                    echo "Prometheus running at http://192.168.56.10:9090"
-                                }
-                            }
-                        }
-                        stage('Grafana') {
-                            steps {
-                                timeout(time: 2, unit: 'MINUTES') {  // Increased timeout
-                                    sh '''
-                                        docker-compose up -d grafana
-                                        # Wait for Grafana to be healthy
-                                        until curl -s http://grafana:3000/api/health; do
-                                            sleep 5
-                                            echo "Waiting for Grafana to start..."
-                                        done
-                                    '''
-                                    echo "Grafana running at http://192.168.56.10:3000"
-                                    echo "Default credentials: admin/admin"
-                                }
-                            }
-                        }
+                    docker.build("${DOCKER_REGISTRY}/kaddem:${APP_VERSION}")
+                }
+            }
+        }
+
+        stage('Verify Registry') {
+            steps {
+                script {
+                    def result = sh(script: "curl -I http://${DOCKER_REGISTRY}/v2/ || true", returnStatus: true)
+                    if (result != 0) {
+                        error "Docker registry at ${DOCKER_REGISTRY} is not accessible"
                     }
                 }
             }
         }
 
-        post {
-            always {
-                // Optional: Add health checks
+        stage('Push to Docker Registry') {
+            steps {
                 script {
-                    try {
-                        sh 'curl -s http://192.168.56.10:9090/-/healthy > prometheus-health.txt'
-                        sh 'curl -s http://192.168.56.10:3000/api/health > grafana-health.txt'
-                    } catch (err) {
-                        echo "Monitoring health check failed: ${err}"
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'nexus',
+                            usernameVariable: 'DOCKER_USER',
+                            passwordVariable: 'DOCKER_PASS'
+                        )
+                    ]) {
+                        sh """
+                            echo "$DOCKER_PASS" | docker login ${DOCKER_REGISTRY} \\
+                                -u "$DOCKER_USER" \\
+                                --password-stdin
+                            docker push ${DOCKER_REGISTRY}/kaddem:${APP_VERSION}
+                        """
                     }
                 }
-                cleanWs()
             }
+        }
+
+        stage('Deploy Application') {
+            steps {
+                script {
+                    // Stop and remove old containers
+                    sh 'docker-compose down || true'
+
+                    // Pull latest images
+                    sh 'docker-compose pull'
+
+                    // Start application stack
+                    sh 'docker-compose up -d'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Clean up workspace
+            cleanWs()
         }
     }
 }

@@ -1,43 +1,47 @@
+
 version: '3.8'
 
 services:
-  # Service pour la base de données MySQL
-  mysqldb:
-    image: mysql:8.0
-    restart: unless-stopped
+  mysql:
+    image: mysql:8
+    container_name: mysql_db
     environment:
-      MYSQL_ROOT_PASSWORD: mariem
-      MYSQL_DATABASE: khaddemApp
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: kaddem
     ports:
       - "3306:3306"
     volumes:
-      - khaddemApp:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
 
-  # Service backend Spring Boot
-  app-kaddem:
+  kaddem-app:
+    image: 192.168.1.10:5000/kaddem:0.0.1
+    container_name: kaddem_container
     depends_on:
-      - mysqldb
-    image: mariembenyohmes11/khadem:latest
-    restart: on-failure
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/kaddem
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
     ports:
       - "8089:8089"
-    environment:
-      SPRING_APPLICATION_JSON: '{
-        "spring.datasource.url": "jdbc:mysql://mysqldb:3306/khaddemApp?createDatabaseIfNotExist=true",
-        "spring.datasource.username": "root",
-        "spring.datasource.password": "mariem",
-        "spring.jpa.hibernate.ddl-auto": "update"
-      }'
-    stdin_open: true
-    tty: true
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+    depends_on:
+      - kaddem-app
 
- 
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
 
-# Volumes pour persistance des données MySQL
 volumes:
-  khaddemApp:
-
-# Networks pour isoler les services
-networks:
-  frontend_network:
-    driver: bridge
+  mysql_data:
+  grafana_data:
