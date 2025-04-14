@@ -82,25 +82,41 @@ public class EquipeServiceTest {
 
     @Test
     void testEvoluerEquipes() {
+        // 1. Créer une équipe JUNIOR avec au moins 3 contrats actifs expirés
         Equipe equipeJunior = new Equipe("Equipe A", Niveau.JUNIOR);
         equipeJunior.setIdEquipe(1);
 
-        Etudiant etudiant = mock(Etudiant.class);
+        // 2. Créer 3 étudiants avec des contrats expirés (minimum requis pour l'évolution)
+        Etudiant etudiant1 = mock(Etudiant.class);
+        Etudiant etudiant2 = mock(Etudiant.class);
+        Etudiant etudiant3 = mock(Etudiant.class);
+
+        // Configurer les contrats expirés pour chaque étudiant
         Set<Contrat> contrats = new HashSet<>();
         Contrat contratActif = new Contrat();
         contratActif.setArchive(false);
-        contratActif.setDateFinContrat(new Date(System.currentTimeMillis() - 1000000000L)); // Expired contract
+        contratActif.setDateFinContrat(new Date(System.currentTimeMillis() - 1000000000L)); // Contrat expiré
         contrats.add(contratActif);
-        when(etudiant.getContrats()).thenReturn(contrats);
 
-        // Remplacement de Set.of() par Collections.singleton() pour Java 8
-        equipeJunior.setEtudiants(new HashSet<>(Collections.singletonList(etudiant)));
+        when(etudiant1.getContrats()).thenReturn(contrats);
+        when(etudiant2.getContrats()).thenReturn(contrats);
+        when(etudiant3.getContrats()).thenReturn(contrats);
 
-        when(equipeRepository.findById(1)).thenReturn(Optional.of(equipeJunior));
-        when(equipeRepository.save(any(Equipe.class))).thenReturn(equipeJunior);
+        // 3. Ajouter les étudiants à l'équipe
+        Set<Etudiant> etudiants = new HashSet<>();
+        etudiants.add(etudiant1);
+        etudiants.add(etudiant2);
+        etudiants.add(etudiant3);
+        equipeJunior.setEtudiants(etudiants);
 
+        // 4. Configurer les mocks
+        when(equipeRepository.findAll()).thenReturn(Collections.singletonList(equipeJunior));
+        when(equipeRepository.save(any(Equipe.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // 5. Appeler la méthode à tester
         equipeService.evoluerEquipes();
 
+        // 6. Vérifier que le niveau a bien évolué
         assertThat(equipeJunior.getNiveau()).isEqualTo(Niveau.SENIOR);
         verify(equipeRepository).save(equipeJunior);
     }
