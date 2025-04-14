@@ -16,18 +16,19 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                script {
-                    sh 'mvn clean package -DskipTests'
-                }
-            }
-        }
 
         stage('Test') {
             steps {
                 script {
                     sh 'mvn test'
+                }
+            }
+        }
+
+       stage('Build') {
+            steps {
+                script {
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
