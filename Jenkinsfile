@@ -83,53 +83,8 @@ pipeline {
             }
         }
 
-        stage('Verify Registry') {
-            steps {
-                script {
-                    def result = sh(script: "curl -I http://${DOCKER_REGISTRY}/v2/ || true", returnStatus: true)
-                    if (result != 0) {
-                        error "Docker registry at ${DOCKER_REGISTRY} is not accessible"
-                    }
-                }
-            }
-        }
 
-        stage('Push to Docker Registry') {
-            steps {
-                script {
-                    withCredentials([
-                        usernamePassword(
-                            credentialsId: 'nexus',
-                            usernameVariable: 'DOCKER_USER',
-                            passwordVariable: 'DOCKER_PASS'
-                        )
-                    ]) {
-                        sh """
-                            echo "$DOCKER_PASS" | docker login ${DOCKER_REGISTRY} \\
-                                -u "$DOCKER_USER" \\
-                                --password-stdin
-                            docker push ${DOCKER_REGISTRY}/kaddem:${APP_VERSION}
-                        """
-                    }
-                }
-            }
-        }
 
-        stage('Deploy Application') {
-            steps {
-                script {
-                    // Stop and remove old containers
-                    sh 'docker-compose down || true'
-
-                    // Pull latest images
-                    sh 'docker-compose pull'
-
-                    // Start application stack
-                    sh 'docker-compose up -d'
-                }
-            }
-        }
-    }
 
     post {
         always {
