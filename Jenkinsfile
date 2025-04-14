@@ -74,6 +74,13 @@ pipeline {
                 }
             }
         }
+          stage('Deploy with Docker Compose') {
+                                   steps {
+                                       sh 'docker-compose down || true'  // stop old containers (if any)
+                                       sh 'docker-compose pull'          // pull latest images if needed
+                                       sh 'docker-compose up -d'         // start app + mysql
+                                   }
+                               }
     }
 }
 
