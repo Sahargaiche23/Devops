@@ -13,6 +13,8 @@ import tn.esprit.spring.kaddem.repositories.EquipeRepository;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @AllArgsConstructor
@@ -41,42 +43,41 @@ public class EquipeServiceImpl implements IEquipeService{
 	return (	equipeRepository.save(e));
 	}
 
-	public void evoluerEquipes(){
-		List<Equipe> equipes = (List<Equipe>) equipeRepository.findAll();
+	public void evoluerEquipes() {
+		// Correction: Conversion de l'Iterable en List
+		List<Equipe> equipes = StreamSupport.stream(equipeRepository.findAll().spliterator(), false)
+				.collect(Collectors.toList());
+
 		for (Equipe equipe : equipes) {
-			if ((equipe.getNiveau().equals(Niveau.JUNIOR)) || (equipe.getNiveau().equals(Niveau.SENIOR))) {
-				List<Etudiant> etudiants = (List<Etudiant>) equipe.getEtudiants();
-				Integer nbEtudiantsAvecContratsActifs=0;
+			if (equipe.getNiveau() == Niveau.JUNIOR || equipe.getNiveau() == Niveau.SENIOR) {
+				Set<Etudiant> etudiants = equipe.getEtudiants();
+				int nbEtudiantsAvecContratsExpires = 0;
+
 				for (Etudiant etudiant : etudiants) {
-					Set<Contrat> contrats = etudiant.getContrats();
-					//Set<Contrat> contratsActifs=null;
-					for (Contrat contrat : contrats) {
-						Date dateSysteme = new Date();
-						long difference_In_Time = dateSysteme.getTime() - contrat.getDateFinContrat().getTime();
-						long difference_In_Years = (difference_In_Time / (1000l * 60 * 60 * 24 * 365));
-						if ((contrat.getArchive() == false) && (difference_In_Years > 1)) {
-							//	contratsActifs.add(contrat);
-							nbEtudiantsAvecContratsActifs++;
+					boolean hasContratExpire = etudiant.getContrats().stream()
+							.anyMatch(contrat ->
+									!contrat.getArchive() &&
+											(new Date().getTime() - contrat.getDateFinContrat().getTime()) >
+													(1000L * 60 * 60 * 24 * 365)
+							);
+
+					if (hasContratExpire) {
+						nbEtudiantsAvecContratsExpires++;
+						if (nbEtudiantsAvecContratsExpires >= 3) {
 							break;
 						}
-						if (nbEtudiantsAvecContratsActifs >= 3) break;
 					}
 				}
-					if (nbEtudiantsAvecContratsActifs >= 3){
-						if (equipe.getNiveau().equals(Niveau.JUNIOR)){
-							equipe.setNiveau(Niveau.SENIOR);
-							equipeRepository.save(equipe);
-							break;
-						}
-						if (equipe.getNiveau().equals(Niveau.SENIOR)){
-							equipe.setNiveau(Niveau.EXPERT);
-							equipeRepository.save(equipe);
-							break;
-						}
+
+				if (nbEtudiantsAvecContratsExpires >= 3) {
+					if (equipe.getNiveau() == Niveau.JUNIOR) {
+						equipe.setNiveau(Niveau.SENIOR);
+					} else if (equipe.getNiveau() == Niveau.SENIOR) {
+						equipe.setNiveau(Niveau.EXPERT);
+					}
+					equipeRepository.save(equipe);
 				}
 			}
-
 		}
-
 	}
 }
