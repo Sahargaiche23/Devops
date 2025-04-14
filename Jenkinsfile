@@ -68,11 +68,67 @@ stage('Deploy to Nexus') {
             }
         }
 
+
         stage('Package') {
             steps {
                 script {
                     sh 'mvn package'
                 }
+            }
+        }
+
+        stage('Deploy Monitoring') {
+            steps {
+                script {
+                    parallel {
+                        stage('Prometheus') {
+                            steps {
+                                timeout(time: 2, unit: 'MINUTES') {  // Increased timeout
+                                    sh '''
+                                        docker-compose up -d prometheus
+                                        # Wait for Prometheus to be healthy
+                                        until curl -s http://prometheus:9090/-/ready; do
+                                            sleep 5
+                                            echo "Waiting for Prometheus to start..."
+                                        done
+                                    '''
+                                    echo "Prometheus running at http://192.168.56.10:9090"
+                                }
+                            }
+                        }
+                        stage('Grafana') {
+                            steps {
+                                timeout(time: 2, unit: 'MINUTES') {  // Increased timeout
+                                    sh '''
+                                        docker-compose up -d grafana
+                                        # Wait for Grafana to be healthy
+                                        until curl -s http://grafana:3000/api/health; do
+                                            sleep 5
+                                            echo "Waiting for Grafana to start..."
+                                        done
+                                    '''
+                                    echo "Grafana running at http://192.168.56.10:3000"
+                                    echo "Default credentials: admin/admin"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        post {
+            always {
+                // Optional: Add health checks
+                script {
+                    try {
+                        sh 'curl -s http://192.168.56.10:9090/-/healthy > prometheus-health.txt'
+                        sh 'curl -s http://192.168.56.10:3000/api/health > grafana-health.txt'
+                    } catch (err) {
+                        echo "Monitoring health check failed: ${err}"
+                    }
+                }
+                cleanWs()
             }
         }
     }
