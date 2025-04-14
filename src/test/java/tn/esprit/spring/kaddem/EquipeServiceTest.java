@@ -83,46 +83,35 @@ public class EquipeServiceTest {
     @Test
     void testEvoluerEquipes() {
         // 1. Créer une équipe JUNIOR
-        Equipe equipeJunior = new Equipe("Equipe A", Niveau.JUNIOR);
-        equipeJunior.setIdEquipe(1);
+        Equipe equipe = new Equipe("Equipe Test", Niveau.JUNIOR);
 
-        // 2. Créer des étudiants avec contrats expirés
+        // 2. Créer 3 étudiants avec contrats expirés
         Etudiant etudiant1 = new Etudiant();
         Etudiant etudiant2 = new Etudiant();
         Etudiant etudiant3 = new Etudiant();
 
-        // Configurer les contrats expirés
+        // Configurer un contrat expiré (plus d'un an)
         Contrat contratExpire = new Contrat();
         contratExpire.setArchive(false);
-        contratExpire.setDateFinContrat(new Date(System.currentTimeMillis() - 1000000000L));
+        contratExpire.setDateFinContrat(new Date(System.currentTimeMillis() - (366L * 24 * 60 * 60 * 1000))); // 366 jours
 
-        Set<Contrat> contrats = new HashSet<>();
-        contrats.add(contratExpire);
+        // Assigner le contrat aux étudiants
+        etudiant1.setContrats(Collections.singleton(contratExpire));
+        etudiant2.setContrats(Collections.singleton(contratExpire));
+        etudiant3.setContrats(Collections.singleton(contratExpire));
 
-        etudiant1.setContrats(contrats);
-        etudiant2.setContrats(contrats);
-        etudiant3.setContrats(contrats);
+        // Ajouter les étudiants à l'équipe
+        equipe.setEtudiants(new HashSet<>(Arrays.asList(etudiant1, etudiant2, etudiant3)));
 
-        // 3. Ajouter les étudiants à l'équipe (en utilisant HashSet directement)
-        Set<Etudiant> etudiants = new HashSet<>();
-        etudiants.add(etudiant1);
-        etudiants.add(etudiant2);
-        etudiants.add(etudiant3);
-        equipeJunior.setEtudiants(etudiants);
-
-        // 4. Configurer le mock pour retourner une liste contenant notre équipe
-        List<Equipe> equipes = new ArrayList<>();
-        equipes.add(equipeJunior);
-        when(equipeRepository.findAll()).thenReturn(equipes);
-
-        // 5. Configurer le mock pour sauvegarde
+        // 3. Configurer les mocks
+        when(equipeRepository.findAll()).thenReturn(Collections.singletonList(equipe));
         when(equipeRepository.save(any(Equipe.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // 6. Exécuter la méthode
+        // 4. Exécuter la méthode
         equipeService.evoluerEquipes();
 
-        // 7. Vérifications
-        assertThat(equipeJunior.getNiveau()).isEqualTo(Niveau.SENIOR);
-        verify(equipeRepository).save(equipeJunior);
+        // 5. Vérifications
+        assertThat(equipe.getNiveau()).isEqualTo(Niveau.SENIOR);
+        verify(equipeRepository, times(1)).save(equipe);
     }
 }
